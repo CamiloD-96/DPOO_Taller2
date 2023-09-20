@@ -33,9 +33,10 @@ public class Consola {
 				mostrarOpciones();
 				int opcion_seleccionada = Integer.parseInt(input("Por favor seleccione una opción"));
 				if (opcion_seleccionada == 0)
+				{
 					mostrarMenu();
-					mostrarOpciones();
-				if (opcion_seleccionada == 1)
+				}
+				else if (opcion_seleccionada == 1)
 					iniciarPedido();
 				else if (opcion_seleccionada == 2)
 					cerrarYGuardarPedido();
