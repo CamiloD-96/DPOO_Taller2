@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import uniandes.dpoo.taller2.modelo.Combo;
 import uniandes.dpoo.taller2.modelo.Ingrediente;
+import uniandes.dpoo.taller2.modelo.Pedido;
 import uniandes.dpoo.taller2.modelo.ProductoMenu;
 import uniandes.dpoo.taller2.procesamiento.ControllerRestaurante;
 import uniandes.dpoo.taller2.procesamiento.LoaderRestaurante;
@@ -51,6 +53,10 @@ public class Consola {
 					System.out.println("Saliendo de la aplicación ...");
 					continuar = false;
 				}
+				else if (opcion_seleccionada == 7)
+				{
+					pedidoRepetido();
+				}
 				else
 				{
 					System.out.println("Por favor seleccione una opción válida.");
@@ -65,33 +71,142 @@ public class Consola {
 
 
 
+
+
 	private void iniciarPedido() {
 		// TODO Auto-generated method stub
+		if (controllerRestaurante.estaActivo())
+		{
+			System.out.println("Cierre el pedido anterior para poder iniciar un nuevo pedido");
+			return;
+		} 
 		System.out.println("Para iniciar su pedido digita la siguiente información: \n\n");
 		String nombre = input("Digite su nombre: ");
 		String direccion = input("Digite su dirección: ");
 		controllerRestaurante.iniciarPedido(nombre, direccion);
+		pedirProductosDelPedido();
 		System.out.println("\nPedido registrado");
 	}
 	
+	private void pedirProductosDelPedido()
+	{
+		System.out.println("\nEscoja los productos que quiere en su pedido: ");
+		String combo = input("\nQuiere un combo? (SI/NO): ");
+		
+		if (combo.toLowerCase().equals("si"))
+		{
+			int comboEscogido = Integer.parseInt(input("\nDigita el código del combo escogido: "));
+			boolean revision = revisionCodigo(0,comboEscogido); // 0 representa combos
+			if (revision == false) {System.out.println("\nOpción de combo no existente, vuelva a elegir");pedirProductosDelPedido();};
+			Combo producto = controllerRestaurante.darCombos().get(comboEscogido-1);
+			controllerRestaurante.darPedidoEnCurso().agregarComboAPedido(producto);
+		}
+		
+		else if (combo.toLowerCase().equals("no"))
+		{
+			int productoEscogido = Integer.parseInt(input("\nDigita el código del producto escogido: "));
+			boolean revision = revisionCodigo(1,productoEscogido); // 1 representa producto
+			if (revision == false) {System.out.println("\nOpción de producto no existente, vuelva a elegir");pedirProductosDelPedido();};		
+			ProductoMenu producto =  controllerRestaurante.darMenu().get(productoEscogido - 1);
+			controllerRestaurante.darPedidoEnCurso().agregarProductoAPedido(producto);
+		}
+		
+		else {
+			System.out.println("\nOpción no válida, vuelva a elegir");
+			pedirProductosDelPedido();
+		}
+		
+		String adiciones = input("\nDesea agregar algún producto adicional a su pedido?(SI/NO): ");
+		if (adiciones.toLowerCase().equals("no")){ return ;}
+		else if(adiciones.toLowerCase().equals("si")) {adicionarIngredientes();}
+		
+	}
+	private void adicionarIngredientes() 
+	{
+		int productoEscogido = Integer.parseInt(input("\nDigita el código del producto escogido: "));
+		boolean revision = revisionCodigo(2,productoEscogido); // 2 representa ingrediente
+		if (revision == false) {System.out.println("\nOpción de producto no existente, vuelva a elegir");adicionarIngredientes();};		
+		Ingrediente ingrediente = controllerRestaurante.darIngredientes().get(productoEscogido - 1);
+		controllerRestaurante.darPedidoEnCurso().agregarIngredienteAPedido(ingrediente);	
+		
+	//Agregar más ingredientes
+		String adiciones = input("\nDesea agregar algún otro producto adicional a su pedido?(SI/NO): ");
+		if (adiciones.toLowerCase().equals("no")){ return ;}
+		else if(adiciones.toLowerCase().equals("si")) {adicionarIngredientes();}
+	}
+
+	private void eliminarIngredientes(){
+		int productoEscogido = Integer.parseInt(input("\nDigita el código del producto escogido a eliminar: "));
+		boolean revision = revisionCodigo(2,productoEscogido); // 2 representa ingrediente
+		if (revision == false) {System.out.println("\nOpción de producto no existente, vuelva a elegir");eliminarIngredientes();};		
+		Ingrediente ingrediente = controllerRestaurante.darIngredientes().get(productoEscogido - 1);
+		controllerRestaurante.darPedidoEnCurso().agregarIngredienteEliminado(ingrediente);	
+		
+	//Eliminar más ingredientes
+		String adiciones = input("\nDesea eliminar algún otro producto adicional a su pedido?(SI/NO): ");
+		if (adiciones.toLowerCase().equals("no")){ return ;}
+		else if(adiciones.toLowerCase().equals("si")) {eliminarIngredientes();}
+	}
+
+
+
 	private void cerrarYGuardarPedido() {
-		// TODO Auto-generated method stub
+		if(controllerRestaurante.estaActivo())
+		{
+		controllerRestaurante.cerrarPedido();
+		System.out.println("\nPedido guardado y cerrado");
+		}
+		else {System.out.println("\nNo hay pedidos activos para cerrar");}
+		
 		
 	}
 	
+	private boolean revisionCodigo(int tipo, int escogido) {
+		boolean bool = false;
+		if (tipo == 0)
+		{
+			if(escogido > 0 && escogido <= controllerRestaurante.darCombos().size()){bool = true;};      
+		}
+		else if (tipo == 1)
+		{
+			if(escogido > 0 && escogido <= controllerRestaurante.darMenu().size()){bool = true;};      
+		}
+		else 
+		{
+			if(escogido >= 0 && escogido <= controllerRestaurante.darIngredientes().size()){bool = true;};      
+		}
+		return bool;
+	}
+
+
+
 	private void consultarPedido() {
-		// TODO Auto-generated method stub
+		int idPedido = Integer.parseInt(input("\nDigita el id del pedido a buscar: "));
+		Pedido buscado = controllerRestaurante.darInfoPedido(idPedido);
+		if (buscado != null)
+		{
+			System.out.println("\nEl pedido buscado tiene la siguientes características: " + buscado.crearTextoFactura());
+		}
+		
 
 	}
 
 	private void eliminarIngredientePedido() {
-		// TODO Auto-generated method stub
-		
+		if(controllerRestaurante.estaActivo())
+		{
+		eliminarIngredientes();
+		System.out.println("\nIngrediente eliminado");
+		}
+		else {System.out.println("\nNo hay pedidos activos para eliminar ingredientes");}
 	}
 
 	private void agregarIngredientePedido() {
-		// TODO Auto-generated method stub
-		
+		if(controllerRestaurante.estaActivo())
+		{
+		adicionarIngredientes();
+		System.out.println("\nIngrediente adicionado");
+		}
+		else {System.out.println("\nNo hay pedidos activos para agregar ingredientes");}
 	}
 
 
@@ -109,7 +224,9 @@ public class Consola {
 		System.out.println("3. Agregar ingrediente al pedido");
 		System.out.println("4. Eliminar ingrediente al pedido");
 		System.out.println("5. Consultar sobre un pedido, ingresando el id");
-		System.out.println("6. Salir de la aplicación\n");
+		System.out.println("6. Salir de la aplicación");
+		System.out.println("7. Validar sin un pedido esta repetido\n");
+		System.out.print("8. Agregar bebida al pedido (Solo usar al correr el modif)\n");
 	}
 	
 	
@@ -148,7 +265,7 @@ public class Consola {
 
 	}
 	
-	private void ejecutarCargarData()
+	public void ejecutarCargarData()
 	{
 		try
 		{
@@ -198,7 +315,11 @@ public class Consola {
 		return null;
 	}
 
-	
+	public void pedidoRepetido()
+	{
+		int opcionSeleccionada = Integer.parseInt(input("Por favor ingrese el id del pedido a revisar"));
+		controllerRestaurante.repetidoPedido(opcionSeleccionada);
+	}
 	public static void main(String[] args)
 	{
 		Consola consola = new Consola();
