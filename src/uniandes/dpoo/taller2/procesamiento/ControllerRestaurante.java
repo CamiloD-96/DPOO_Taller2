@@ -5,7 +5,6 @@ import java.util.List;
 
 import uniandes.dpoo.taller2.modelo.Combo;
 import uniandes.dpoo.taller2.modelo.Ingrediente;
-import uniandes.dpoo.taller2.modelo.Interface;
 import uniandes.dpoo.taller2.modelo.Pedido;
 import uniandes.dpoo.taller2.modelo.ProductoMenu;
 
@@ -85,7 +84,7 @@ public class ControllerRestaurante {
 						contador += 1;
 						}
 			}
-			if(contador >0) {System.out.println("Pedido repetido ");}
+			if(contador >0) {System.out.println("Pedido repetido");}
 		
 		}
 		

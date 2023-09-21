@@ -1,0 +1,9 @@
+HAMBURGUESAS EL NORRAL
+Factura NumPedido: 1
+Nombre: 1
+Dirección: 1
+ Combos: combo corral: 24475.5
+
+Precio sin Iva: $24475.5
+IVA: $4650.345
+Precio Total: $29125.845
